@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>万里的创作工作台</title>
+<style>
+:root{--pink:#ff4d6d;--pink-soft:#fff0f3;--ink:#33333b;--gray:#8a8a94;--bg:#f6f6f8;--card:#fff;--line:#eeeef2;--green:#0ca678;--side-w:210px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.65}
+.app{display:flex;min-height:100vh}
+/* 侧边栏 */
+aside{width:var(--side-w);background:#fff;border-right:1px solid var(--line);padding:22px 14px;display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:20}
+.logo{font-size:16px;font-weight:800;padding:0 10px 18px;color:var(--ink)}
+.logo em{font-style:normal;color:var(--pink)}
+aside nav{flex:1;display:flex;flex-direction:column;gap:4px}
+aside nav a{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:10px;font-size:14px;color:var(--gray);cursor:pointer;text-decoration:none}
+aside nav a:hover{background:var(--pink-soft);color:var(--pink)}
+aside nav a.active{background:var(--pink);color:#fff;font-weight:600}
+.side-foot{font-size:11px;color:#c2c2c9;padding:12px 10px 0;border-top:1px dashed var(--line);text-align:center}
+/* 主区 */
+main{flex:1;margin-left:var(--side-w);padding:26px 26px 40px;max-width:920px}
+.page{display:none}
+.page.active{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+h1{font-size:20px;font-weight:800}
+.sub{color:var(--gray);font-size:13px;margin:2px 0 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
+.card h3{font-size:15px;margin-bottom:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}
+.stat b{font-size:22px;color:var(--pink)}
+.stat span{display:block;font-size:12px;color:var(--gray);margin-top:2px}
+/* 表单 */
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+input,select,textarea{border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:13.5px;font-family:inherit;background:#fbfbfc;outline:none}
+input:focus,textarea:focus{border-color:var(--pink)}
+input{flex:1;min-width:120px}
+textarea{width:100%;resize:vertical}
+.btn{border:none;background:var(--pink);color:#fff;border-radius:10px;padding:9px 18px;font-size:13.5px;cursor:pointer;font-weight:600}
+.btn:hover{background:#e6415f}
+.btn.gray{background:#f1f1f4;color:var(--gray)}
+.mini{border:1px solid var(--line);background:#fafafa;border-radius:8px;font-size:12px;padding:4px 10px;cursor:pointer;color:var(--gray)}
+.mini:hover{border-color:var(--pink);color:var(--pink)}
+/* 列表 */
+.item{display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;margin-bottom:9px;font-size:14px;background:#fff}
+.item .grow{flex:1}
+.item.done .name{text-decoration:line-through;color:#c0c0c7}
+.chk{width:20px;height:20px;border:2px solid #ddd;border-radius:6px;cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff}
+.chk.on{background:var(--pink);border-color:var(--pink)}
+.del{border:none;background:none;color:#d5d5db;cursor:pointer;font-size:15px}
+.del:hover{color:var(--pink)}
+.pill{display:inline-block;background:var(--pink-soft);color:var(--pink);border-radius:20px;padding:1px 10px;font-size:11.5px;margin-right:4px}
+.progress{height:8px;background:#f1f1f4;border-radius:6px;overflow:hidden;margin:6px 0 14px}
+.progress i{display:block;height:100%;background:linear-gradient(90deg,#ff758f,var(--pink));border-radius:6px;transition:.3s}
+/* 笔记内容 */
+.bodytext{font-size:14px;white-space:pre-wrap;background:#fffdfb;border:1px solid #f3e9e4;border-radius:10px;padding:14px}
+.prompt{background:#1f2430;color:#e8e8ef;font-family:Consolas,monospace;font-size:12px;border-radius:10px;padding:12px;white-space:pre-wrap;overflow-x:auto;margin-top:6px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--pink-soft);white-space:nowrap}
+details{border:1px solid var(--line);border-radius:11px;padding:12px 14px;margin-bottom:10px;background:#fff}
+summary{cursor:pointer;font-weight:600;font-size:14px}
+.check li{list-style:none;padding:5px 0;font-size:13.5px}
+.check li::before{content:"✅";margin-right:7px}
+.empty{text-align:center;color:#c5c5cc;font-size:13px;padding:26px 0}
+/* 手机底部 tab */
+#tabbar{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);z-index:30;padding:6px 2px calc(6px + env(safe-area-inset-bottom))}
+#tabbar a{flex:1;text-align:center;font-size:10.5px;color:var(--gray);text-decoration:none;padding:4px 0}
+#tabbar a i{display:block;font-style:normal;font-size:19px}
+#tabbar a.active{color:var(--pink);font-weight:700}
+@media(max-width:768px){
+  aside{display:none}
+  main{margin-left:0;padding:18px 14px 84px}
+  .grid4{grid-template-columns:repeat(2,1fr)}
+  #tabbar{display:flex}
+}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(16px);background:#33333b;color:#fff;padding:9px 20px;border-radius:24px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:99}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+  <div class="logo">🐾 万里<em>的创作工作台</em></div>
+  <nav id="sidenav">
+    <a data-page="home" class="active">🏠 首页</a>
+    <a data-page="tasks">✅ 每日任务</a>
+    <a data-page="topics">💡 选题灵感</a>
+    <a data-page="ideas">📖 素材工坊</a>
+    <a data-page="notes">📝 笔记工坊</a>
+    <a data-page="shoot">📸 拍摄指导</a>
+    <a data-page="stats">📈 爆款追踪</a>
+    <a data-page="review">🔄 内容复盘</a>
+  </nav>
+  <div class="side-foot">护士上门 · 不露脸人设<br>为毛孩子攒罐罐钱 🥫</div>
+</aside>
+
+<main>
+<!-- 首页 -->
+<section class="page active" id="page-home">
+  <h1 id="greet">你好呀</h1>
+  <p class="sub" id="dateline"></p>
+  <div class="grid4">
+    <div class="stat"><b id="s-task">0/0</b><span>今日任务</span></div>
+    <div class="stat"><b id="s-topic">0</b><span>选题池</span></div>
+    <div class="stat"><b id="s-pub">0</b><span>已发布笔记</span></div>
+    <div class="stat"><b id="s-rate">--</b><span>平均互动率</span></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3>⚡ 快捷入口</h3>
+    <div class="row">
+      <button class="btn" onclick="go('tasks')">打卡今日任务</button>
+      <button class="btn gray" onclick="go('topics')">找选题灵感</button>
+      <button class="btn gray" onclick="go('notes')">复制笔记内容</button>
+      <button class="btn gray" onclick="go('stats')">记一条数据</button>
+    </div>
+    <p style="font-size:12.5px;color:var(--gray)">💡 今天的罐罐钱，靠下一条爆款笔记 🐱</p>
+  </div>
+  <div class="card" id="daily-card" style="display:none">
+    <h3>📡 每日爆点速递 <span class="pill" id="daily-date"></span></h3>
+    <div id="daily-list" style="font-size:13.5px"></div>
+    <p style="font-size:12px;color:var(--gray);margin-top:8px">每天早上 9 点自动更新 · 完整 Top10＋爆点分析见「选题灵感」</p>
+  </div>
+</section>
+
+<!-- 每日任务 -->
+<section class="page" id="page-tasks">
+  <h1>每日任务</h1>
+  <p class="sub">每天完成后打勾，第二天自动重置，坚持打卡养账号 🌱</p>
+  <div class="card">
+    <div class="row"><input id="task-in" placeholder="新增任务，如：拍1组素材" onkeydown="if(event.key=='Enter')addTask()"><button class="btn" onclick="addTask()">添加</button></div>
+    <div class="progress"><i id="task-bar" style="width:0"></i></div>
+    <div id="task-list"></div>
+  </div>
+</section>
+
+<!-- 选题灵感 -->
+<section class="page" id="page-topics">
+  <h1>选题灵感</h1>
+  <p class="sub">爆点候选都在这，挑一个丢给 AI 就能出整套笔记包</p>
+  <div class="card" id="hot10-card" style="display:none">
+    <h3>📡 每日爆点 Top10 <span class="pill" id="hot10-date"></span></h3>
+    <div id="hot10-list" style="font-size:13.5px"></div>
+    <p style="font-size:12px;color:var(--gray);margin-top:8px">每天早上 9 点自动更新 · 每条附爆点分析 · 中意的点「＋选题池」</p>
+  </div>
+  <div class="card">
+    <div class="row">
+      <input id="topic-in" placeholder="新选题名称" onkeydown="if(event.key=='Enter')addTopic()">
+      <select id="topic-type"><option>故事型</option><option>科普型</option><option>争议型</option><option>情感型</option><option>反差型</option></select>
+      <button class="btn" onclick="addTopic()">添加</button>
+    </div>
+    <div id="topic-list"></div>
+  </div>
+</section>
+
+<!-- 笔记工坊 -->
+<section class="page" id="page-notes">
+  <h1>笔记工坊</h1>
+  <p class="sub">笔记 01 · 上门打针/换药（2026-11-06 出稿）· 点标题可折叠</p>
+
+  <details open><summary>🎯 3 组备选标题</summary>
+    <div style="margin-top:10px">
+      <div class="item"><span class="grow">1. 原来打针换药真的可以上门！护士本人来聊聊冷知识🩹<em style="color:var(--gray);font-size:12px">（首发推荐）</em></span><button class="mini" onclick="cpNext(this)">复制</button></div>
+      <div class="item"><span class="grow">2. 不露脸护士日常｜上门换药第37单，说点大实话</span><button class="mini" onclick="cpNext(this)">复制</button></div>
+      <div class="item"><span class="grow">3. 谁懂啊！护士上门服务居然还有这么多人不知道😭</span><button class="mini" onclick="cpNext(this)">复制</button></div>
+    </div>
+  </details>
+
+  <details><summary>📝 笔记正文（约480字）</summary>
+    <button class="mini" style="margin:10px 0" onclick="cpId('nb-body',this)">复制全文</button>
+    <div class="bodytext" id="nb-body">姐妹们，我干护士第8年了，去年开始利用休息时间接上门护理的单子，今天来聊聊这个很多人不知道的服务🏠
+
+先说清楚哈：上门打针换药不是随便就能约的！
+✅ 必须是医院开了医嘱/治疗单的项目
+✅ 通过正规平台预约（实名认证＋执业证审核那种）
+✅ 输液这种风险高的项目，各地规定不一样，大部分情况是不接的，别为难护士小姐姐
+
+一般是什么人来约呢👇
+· 出院后要定期换药的，不想每天跑医院
+· 老人行动不方便，子女上班实在没时间陪
+· 术后要复查伤口、拆线拆石膏前的评估
+
+我上门的流程大概是这样：
+1️⃣ 提前沟通时间、项目和医嘱，带齐耗材
+2️⃣ 到家先核对信息，查看伤口情况
+3️⃣ 操作前洗手、戴手套，全程无菌
+4️⃣ 做完写记录、交代注意事项，约下次时间
+
+说点真实感受：
+第一次上门的时候我比病人还紧张，出门前把出诊箱检查了三遍😅 现在习惯了，最大的成就感是看着伤口一天天好起来，还有老人拉着你的手说"闺女，下次还找你"🥹
+
+当然也有委屈的时候，有人觉得上门就是"顺手的事"收费贵。但耗材、路程、时间成本都是实实在在的，专业的事还是得专业的人来做。
+
+有想了解的评论区问我，看到都会回～
+关注我，看不露脸版护士上门日常👋</div>
+  </details>
+
+  <details><summary>🖼 封面大字 + 话题标签</summary>
+    <div style="margin-top:10px">
+      <div class="item"><span class="grow">封面大字：打针换药，居然能上门？（小字：护士本人不露脸日常）</span><button class="mini" onclick="cp(this)" data-v="打针换药，居然能上门？">复制</button></div>
+      <div class="item"><span class="grow">#护士上门 #上门护理 #居家护理 #上门换药 #护士日常 #护理知识分享 #同城好服务</span><button class="mini" onclick="cpNext(this)">复制</button></div>
+    </div>
+  </details>
+
+  <details><summary>📑 分页脚本（6图）</summary>
+    <table style="margin-top:10px">
+      <tr><th>页</th><th>画面</th><th>页面文字</th></tr>
+      <tr><td>P1</td><td>第一视角，戴手套双手打开换药包</td><td>大字：打针换药，居然能上门？</td></tr>
+      <tr><td>P2</td><td>背影，拎出诊箱站在家门口</td><td>利用休息时间接单的第8年</td></tr>
+      <tr><td>P3</td><td>出诊箱物品俯拍平铺</td><td>必须凭医嘱、走正规平台预约⚠️</td></tr>
+      <tr><td>P4</td><td>第一视角写护理记录</td><td>核对→评估→无菌操作→记录</td></tr>
+      <tr><td>P5</td><td>手部特写递注意事项卡片</td><td>伤口一天天变好🥹</td></tr>
+      <tr><td>P6</td><td>楼道背影逆光收尾</td><td>下期：哪些项目不适合上门</td></tr>
+    </table>
+  </details>
+
+  <details><summary>🎨 AI 绘图提示词（6图 · 竖版3:4 · 无针头/无护士服/不露脸）</summary>
+    <div style="margin-top:10px" id="prompts">
+      <p style="font-size:13px;font-weight:600;margin:8px 0 0">P1 首图 <button class="mini" onclick="cpNext(this)">复制</button></p>
+      <div class="prompt">第一人称俯拍视角，一双年轻女生的手戴着淡蓝色一次性医用手套，正在打开一个白色便携换药包，包内有碘伏棉球、无菌镊子、透明敷贴、纱布块，下方铺着蓝色无菌治疗巾，背景是温馨的居家木地板和拖鞋，柔和的自然窗光，真实手机摄影质感，生活分享风格，竖版3:4，画面中不出现针头和注射器，不出现人脸</div>
+      <p style="font-size:13px;font-weight:600;margin:14px 0 0">P2 背影出门 <button class="mini" onclick="cpNext(this)">复制</button></p>
+      <div class="prompt">背影视角，一位穿米白色针织衫、深色长裤的女生，手拎浅灰色医用出诊箱，站在温馨的居民楼家门口，门前有一块虚化的地垫，暖色调自然光，真实手机摄影质感，竖版3:4，不露脸，不穿白大褂护士服，无针头元素</div>
+      <p style="font-size:13px;font-weight:600;margin:14px 0 0">P3 出诊箱平铺 <button class="mini" onclick="cpNext(this)">复制</button></p>
+      <div class="prompt">俯拍平铺图，一个浅灰色医用出诊箱打开摆放在米色桌面上，内部物品整齐：一次性手套、碘伏棉签、透明敷贴、无菌纱布、镊子、洗手液、护理记录本，无针头无注射器，ins风格摆拍，柔和均匀光线，浅色系，竖版3:4，无人物</div>
+      <p style="font-size:13px;font-weight:600;margin:14px 0 0">P4 写护理记录 <button class="mini" onclick="cpNext(this)">复制</button></p>
+      <div class="prompt">第一人称视角，戴淡蓝色医用手套的手正在护理记录本上写字，旁边放着一小卷透明敷贴和碘伏棉签，桌上光线柔和，窗外自然光，真实手机摄影质感，浅色温暖色调，竖版3:4，无针头，无注射器，不露脸</div>
+      <p style="font-size:13px;font-weight:600;margin:14px 0 0">P5 手部温情特写 <button class="mini" onclick="cpNext(this)">复制</button></p>
+      <div class="prompt">局部特写，一双年轻女生的手轻轻递出一张打印好的注意事项卡片，旁边是老人布满皱纹的手正准备接过，仅双手入镜，温馨客厅虚化背景，暖黄色调，柔和逆光，真实生活感手机摄影，竖版3:4，不露脸，无医疗器材</div>
+      <p style="font-size:13px;font-weight:600;margin:14px 0 0">P6 收尾情绪 <button class="mini" onclick="cpNext(this)">复制</button></p>
+      <div class="prompt">背影视角，一位穿米白色针织衫的女生走在小区楼道里，手拎浅灰色出诊箱，逆光，光从楼道窗户斜射进来，微微过曝的氛围感，真实手机摄影质感，温暖治愈色调，竖版3:4，不露脸，不穿护士服，无针头</div>
+    </div>
+  </details>
+
+  <details><summary>🛡 违禁词终检清单</summary>
+    <ul class="check" style="margin-top:8px">
+      <li>无"最/第一/永久/100%/根治/包好"等极限词与绝对化用语</li>
+      <li>无疗效承诺、无编造测评数据（个人经历表述按实际改）</li>
+      <li>已声明"凭医嘱、正规平台、输液一般不接"，降低限流风险</li>
+      <li>文案与配图无针头、无护士服、无露脸元素</li>
+    </ul>
+  </details>
+</section>
+
+<!-- 素材工坊 -->
+<section class="page" id="page-ideas">
+  <h1>素材工坊</h1>
+  <p class="sub">接单时随手记两笔，攒够素材丢给 AI，故事它来写 🐾</p>
+
+  <div class="card">
+    <h3>🤝 三种合作模式（丢素材时告诉我用哪种）</h3>
+    <table>
+      <tr><th style="width:88px">模式</th><th>怎么玩</th></tr>
+      <tr><td><b>🅱 口述素材</b> ⭐推荐</td><td>你丢几句大白话（今天的真实瞬间），AI 扩写成完整笔记＋内心戏＋梗</td></tr>
+      <tr><td><b>🅰 全代笔</b></td><td>只给选题，AI 从头写到尾（赶时间用，真实感稍弱）</td></tr>
+      <tr><td><b>🅲 剧本框架</b></td><td>AI 给钩子→冲突→反转→金句的骨架，你自己填血肉（走心题材用）</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>📝 素材碎片收集器</h3>
+    <div class="row">
+      <textarea id="frag-in" rows="3" placeholder="随手记：今天接单时发生了什么？越碎越好，比如「奶奶家的猫蹲在我工具箱上监工」"></textarea>
+    </div>
+    <div class="row">
+      <input id="frag-topic" placeholder="关联选题（可不填）" style="flex:2">
+      <button class="btn" onclick="addFrag()">收进素材库</button>
+    </div>
+    <div class="row" style="justify-content:flex-end">
+      <button class="mini" onclick="copyFragAll(this)">📋 复制全部素材＋求助指令（发给 AI 写笔记）</button>
+    </div>
+    <div id="frag-list"></div>
+  </div>
+
+  <div class="card">
+    <h3>🛡 医疗故事红线（每次写之前看一眼）</h3>
+    <ul class="check">
+      <li>患者信息全部脱敏：不写姓名、小区、可对上号的病情细节，用"奶奶/阿姨/姐"就够</li>
+      <li>不出现针头、护士服、露脸元素</li>
+      <li>不编造疗效、不承诺效果、不用极限词</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 拍摄指导 -->
+<section class="page" id="page-shoot">
+  <h1>拍摄指导</h1>
+  <p class="sub">三大安全机位 + 手机拍摄速成 + AI 生图求助，拍图不用再愁 📸</p>
+
+  <div class="card">
+    <h3>🎬 三大安全机位（人设红线专用模板）</h3>
+    <table>
+      <tr><th style="width:96px">机位</th><th>怎么拍</th><th style="width:110px">适合内容</th></tr>
+      <tr><td><b>① 第一视角手部</b></td><td>手机固定在胸前高度（夹式支架或塞在围裙口袋露出半截），镜头朝下 45°，只拍双手操作</td><td>开换药包、写记录、整理出诊箱</td></tr>
+      <tr><td><b>② 背影跟拍</b></td><td>手机放门口鞋柜或用小三脚架，你拎出诊箱走向门口，走两步回头整理袖口的瞬间最出片</td><td>出门、进小区、楼道收尾</td></tr>
+      <tr><td><b>③ 俯拍平铺</b></td><td>手机垂直朝下拍桌面，物品摆成网格或对角线，纯色桌布+浅色系道具最干净</td><td>出诊箱开箱、工具展示、封面对比图</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>📱 手机拍摄速成 5 条</h3>
+    <ul class="check">
+      <li><b>光线第一：</b>白天靠窗自然光侧着打，别用顶灯直射；阴天反而柔和出片</li>
+      <li><b>竖版 3:4：</b>小红书信息流黄金比例，相机设置里直接调成 3:4 省得裁剪</li>
+      <li><b>背景做减法：</b>拍之前扫一眼画面，杂物、外卖盒、反光的药盒全挪走</li>
+      <li><b>连拍选优：</b>同一个动作按住快门连拍 5 张，回头挑手部最自然的</li>
+      <li><b>色调统一：</b>全篇笔记用同一个滤镜（推荐浅暖色系），主页整齐度直接翻倍</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>🎨 让 AI 帮你出图（两种方式）</h3>
+    <p style="font-size:13px;line-height:1.7;margin:0 0 8px">
+      <b>方式一 · 直接生成图片：</b>点下面按钮复制求助指令，发到对话框，AI 会按你的选题直接生成配图（不露脸/无针头/无护士服，默认已规避）<br>
+      <b>方式二 · 自己拍：</b>笔记工坊里每篇笔记都带 6 条绘图提示词，它们同时也是<b>摆拍说明书</b>——照着提示词里的构图、光线、道具摆实物，拍出来就是一个效果
+    </p>
+    <div class="row" style="justify-content:flex-end">
+      <button class="mini" onclick="copyShootAsk(this)">📋 复制生图求助指令（发给 AI）</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🛡 拍摄红线（每次开机位前扫一眼）</h3>
+    <ul class="check">
+      <li>不露脸：镜子、玻璃反光、手机黑屏倒影都可能入镜，拍完放大检查</li>
+      <li>不穿护士服、不出现工作牌（会暴露可识别信息）</li>
+      <li>无针头、无注射器入镜（平台医疗内容高危元素）</li>
+      <li>患者家门牌号、小区标识、病历单据不入镜</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 爆款追踪 -->
+<section class="page" id="page-stats">
+  <h1>爆款追踪</h1>
+  <p class="sub">发布后把数据记进来，自动算互动率，看哪类选题最能打</p>
+  <div class="card">
+    <div class="row">
+      <input id="st-title" placeholder="笔记标题" style="flex:2">
+      <input id="st-views" type="number" placeholder="浏览量">
+      <input id="st-likes" type="number" placeholder="点赞">
+      <input id="st-favs" type="number" placeholder="收藏">
+      <input id="st-comments" type="number" placeholder="评论">
+      <button class="btn" onclick="addStat()">记录</button>
+    </div>
+    <div id="stat-summary" style="font-size:13px;color:var(--gray);margin-bottom:10px"></div>
+    <div id="stat-list"></div>
+  </div>
+</section>
+
+<!-- 内容复盘 -->
+<section class="page" id="page-review">
+  <h1>内容复盘</h1>
+  <p class="sub">每篇发完花 3 分钟记一笔，下次就知道怎么做得更好</p>
+  <div class="card">
+    <div class="row"><input id="rv-title" placeholder="哪篇笔记" style="flex:2"></div>
+    <div class="row"><input id="rv-good" placeholder="做得好的地方" style="flex:2"></div>
+    <div class="row"><input id="rv-next" placeholder="下次怎么优化" onkeydown="if(event.key=='Enter')addReview()" style="flex:2"><button class="btn" onclick="addReview()">保存</button></div>
+    <div id="rv-list"></div>
+  </div>
+</section>
+</main>
+</div>
+
+<nav id="tabbar">
+  <a data-page="home" class="active"><i>🏠</i>首页</a>
+  <a data-page="tasks"><i>✅</i>任务</a>
+  <a data-page="topics"><i>💡</i>选题</a>
+  <a data-page="ideas"><i>📖</i>素材</a>
+  <a data-page="notes"><i>📝</i>笔记</a>
+  <a data-page="shoot"><i>📸</i>拍摄</a>
+  <a data-page="stats"><i>📈</i>数据</a>
+  <a data-page="review"><i>🔄</i>复盘</a>
+</nav>
+<div class="toast" id="toast">已复制 ✓</div>
+
+<script>
+/* ---------- 工具 ---------- */
+const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+const store={get(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v===null?d:v}catch(e){return d}},set(k,v){localStorage.setItem(k,JSON.stringify(v))}};
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+function toast(){const t=$('#toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1300)}
+function okMsg(btn){toast();if(btn){const o=btn.textContent;btn.textContent='已复制✓';setTimeout(()=>btn.textContent=o,1100)}}
+function legacyCopy(txt){const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(ta)}
+function copyText(txt,btn){const ok=()=>okMsg(btn);if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(txt).then(ok).catch(()=>{legacyCopy(txt);ok()})}else{legacyCopy(txt);ok()}}
+function cp(btn){copyText(btn.getAttribute('data-v')||'',btn)}
+function cpNext(btn){copyText(btn.parentElement.nextElementSibling.innerText,btn)}
+function cpNextOf(btn){copyText(btn.parentElement.nextElementSibling.innerText,btn)}
+function cpId(id,btn){copyText(document.getElementById(id).innerText,btn)}
+/* 通用：按钮的下一个兄弟是 .bodytext/.prompt/.item */
+function cpItem(btn){copyText(btn.closest('.item').querySelector('.grow').innerText,btn)}
+
+/* ---------- 页面切换 ---------- */
+function go(p){$$('.page').forEach(x=>x.classList.remove('active'));$('#page-'+p).classList.add('active');
+ $$('#sidenav a,#tabbar a').forEach(a=>a.classList.toggle('active',a.dataset.page===p));window.scrollTo(0,0);try{store.set('wb_page',p)}catch(e){}}
+$$('#sidenav a,#tabbar a').forEach(a=>a.addEventListener('click',()=>go(a.dataset.page)));
+
+/* ---------- 首页 ---------- */
+(function(){const d=new Date(),h=d.getHours();
+ const g=h<6?'夜深了还在卷？':h<11?'早上好':h<14?'中午好':h<18?'下午好':'晚上好';
+ $('#greet').textContent=g+'，万里 🐾';
+ const wd='日一二三四五六'[d.getDay()];
+ $('#dateline').textContent=d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日 星期'+wd+' · 每天进步一点点，罐罐迟早装满盆';})();
+
+/* ---------- 每日任务 ---------- */
+let tasks=store.get('wb_tasks',null),done=store.get('wb_done',{});
+if(!tasks){tasks=[
+ {id:1,icon:'📸',name:'拍 1 组工作素材（第一视角/背影/局部）'},
+ {id:2,icon:'✍️',name:'写 1 篇笔记初稿'},
+ {id:3,icon:'💬',name:'回复评论 + 私信 30 分钟'},
+ {id:4,icon:'🔍',name:'刷对标账号 10 篇找灵感'}];store.set('wb_tasks',tasks)}
+function renderTasks(){const t=today(),dl=$('#task-list');if(!dl)return;
+ const dset=new Set(done[t]||[]);dl.innerHTML='';
+ tasks.forEach(tk=>{const on=dset.has(tk.id);
+  const el=document.createElement('div');el.className='item'+(on?' done':'');
+  el.innerHTML='<div class="chk'+(on?' on':'')+'">'+(on?'✓':'')+'</div><span>'+tk.icon+'</span><span class="grow name">'+tk.name+'</span><button class="del">✕</button>';
+  el.querySelector('.chk').onclick=()=>{const s=new Set(done[t]||[]);s.has(tk.id)?s.delete(tk.id):s.add(tk.id);done[t]=[...s];store.set('wb_done',done);renderTasks();renderHome()};
+  el.querySelector('.del').onclick=()=>{tasks=tasks.filter(x=>x.id!==tk.id);store.set('wb_tasks',tasks);renderTasks();renderHome()};
+  dl.appendChild(el)});
+ $('#task-bar').style.width=(tasks.length?dset.size/tasks.length*100:0)+'%'}
+function addTask(){const v=$('#task-in').value.trim();if(!v)return;tasks.push({id:Date.now(),icon:'📌',name:v});store.set('wb_tasks',tasks);$('#task-in').value='';renderTasks();renderHome()}
+
+/* ---------- 选题灵感 ---------- */
+let topics=store.get('wb_topics',null);
+if(!topics){topics=[
+ {id:1,name:'哪些项目不适合上门？（反向避坑）',type:'科普型',status:'写中'},
+ {id:2,name:'第一次上门，差点被当成骗子',type:'故事型',status:'待写'},
+ {id:3,name:'客户家的猫全程蹲在我工具箱上监工',type:'故事型',status:'待写'},
+ {id:4,name:'晚上十点接到一个加急单',type:'故事型',status:'待写'},
+ {id:5,name:'我的出诊箱开箱：每个格子装的是什么',type:'科普型',status:'待写'},
+ {id:6,name:'上门前必问的3个问题（附自检清单）',type:'科普型',status:'待写'},
+ {id:7,name:'上门费到底贵在哪？算笔账给你看',type:'争议型',status:'待写'},
+ {id:8,name:'那些让我破防的客户瞬间',type:'情感型',status:'待写'},
+ {id:9,name:'三甲出来的护士搞副业，图什么？',type:'反差型',status:'待写'}];store.set('wb_topics',topics)}
+function renderTopics(){const dl=$('#topic-list');if(!dl)return;dl.innerHTML='';
+ topics.forEach(tp=>{const el=document.createElement('div');el.className='item';
+  el.innerHTML='<span class="pill">'+tp.type+'</span><span class="grow">'+tp.name+'</span>'+
+   '<select onchange="setStatus('+tp.id+',this.value)"><option'+(tp.status=='待写'?' selected':'')+'>待写</option><option'+(tp.status=='写中'?' selected':'')+'>写中</option><option'+(tp.status=='已发布'?' selected':'')+'>已发布</option></select>'+
+   '<button class="del">✕</button>';
+  el.querySelector('.del').onclick=()=>{topics=topics.filter(x=>x.id!==tp.id);store.set('wb_topics',topics);renderTopics();renderHome()};
+  dl.appendChild(el)})}
+function setStatus(id,v){topics=topics.map(x=>x.id==id?{...x,status:v}:x);store.set('wb_topics',topics);renderHome()}
+function addTopic(){const v=$('#topic-in').value.trim();if(!v)return;topics.unshift({id:Date.now(),name:v,type:$('#topic-type').value,status:'待写'});store.set('wb_topics',topics);$('#topic-in').value='';renderTopics();renderHome()}
+
+/* ---------- 素材工坊 ---------- */
+let frags=store.get('wb_frags',[]);
+function renderFrags(){const dl=$('#frag-list');if(!dl)return;dl.innerHTML='';
+ if(!frags.length){dl.innerHTML='<div class="empty">素材库空空的～接单路上想到什么，随手记两笔 👆</div>';return}
+ [...frags].reverse().forEach(f=>{const el=document.createElement('div');el.className='item'+(f.used?' done':'');
+  el.innerHTML='<span class="grow"><span class="pill">'+f.date+'</span>'+(f.topic?'<span class="pill">'+f.topic+'</span>':'')+(f.used?'<span class="pill">已写</span>':'')+'<br>'+f.text.replace(/</g,'&lt;')+'</span>'+
+   '<button class="mini" onclick="copyFrag('+f.id+',this)">复制</button><button class="del">✕</button>';
+  el.querySelector('.del').onclick=()=>{frags=frags.filter(x=>x.id!==f.id);store.set('wb_frags',frags);renderFrags()};
+  dl.appendChild(el)})}
+function addFrag(){const v=$('#frag-in').value.trim();if(!v)return;
+ frags.push({id:Date.now(),date:today(),topic:$('#frag-topic').value.trim(),text:v,used:false});
+ store.set('wb_frags',frags);$('#frag-in').value='';$('#frag-topic').value='';renderFrags();toast()}
+function copyShootAsk(btn){const tp=($('#topic-in')&&$('#topic-in').value.trim())||'';
+ copyText('请帮我为一篇小红书笔记生成配图。\n账号：护士上门赛道，第一视角/背影/局部特写，不露脸、不穿护士服、无针头无注射器，患者信息脱敏，竖版3:4。\n'+(tp?'选题：'+tp+'\n':'')+'请先给 6 张配图的画面描述和 AI 绘图提示词（可直接复制去即梦/豆包），然后直接帮我生成图片。',btn)}
+function copyFrag(id,btn){const f=frags.find(x=>x.id===id);if(f)copyText('【素材】'+(f.topic?'（'+f.topic+'）':'')+f.text,btn)}
+function copyFragAll(btn){if(!frags.length)return;
+ const unused=frags.filter(f=>!f.used);
+ const list=(unused.length?unused:frags).map((f,i)=>(i+1)+'. '+f.text+(f.topic?'（选题：'+f.topic+'）':'')).join('\n');
+ const inst='请帮我把下面的真实素材扩写成小红书笔记（合作模式🅱口述素材）。\n账号：护士上门赛道，第一视角，不露脸、无针头、无护士服，患者信息脱敏。\n要求：口语化＋内心戏＋适度网络梗，400-600字，结尾留互动钩子。\n\n我的素材：\n'+list;
+ copyText(inst,btn)}
+
+/* ---------- 爆款追踪 ---------- */
+let stats=store.get('wb_stats',[]);
+function rate(s){return s.views>0?((s.likes+s.favs+s.comments)/s.views*100).toFixed(1)+'%':'--'}
+function renderStats(){const dl=$('#stat-list');if(!dl)return;dl.innerHTML='';
+ const tv=stats.reduce((a,b)=>a+(+b.views||0),0),tl=stats.reduce((a,b)=>a+(+b.likes||0),0);
+ $('#stat-summary').textContent=stats.length?('共 '+stats.length+' 篇 · 总浏览 '+tv+' · 总点赞 '+tl):'还没有记录，发布第一篇后把数据填进来吧';
+ [...stats].reverse().forEach(s=>{const el=document.createElement('div');el.className='item';
+  el.innerHTML='<span class="grow"><b style="font-size:13.5px">'+s.title+'</b><br><span style="font-size:12px;color:var(--gray)">浏览 '+s.views+' · 赞 '+s.likes+' · 藏 '+s.favs+' · 评 '+s.comments+'</span></span><span class="pill">'+rate(s)+'</span><button class="del">✕</button>';
+  el.querySelector('.del').onclick=()=>{stats=stats.filter(x=>x.id!==s.id);store.set('wb_stats',stats);renderStats();renderHome()};
+  dl.appendChild(el)})}
+function addStat(){const t=$('#st-title').value.trim();if(!t)return;
+ stats.push({id:Date.now(),title:t,views:+$('#st-views').value||0,likes:+$('#st-likes').value||0,favs:+$('#st-favs').value||0,comments:+$('#st-comments').value||0});
+ store.set('wb_stats',stats);['st-title','st-views','st-likes','st-favs','st-comments'].forEach(i=>$('#'+i).value='');
+ renderStats();renderHome();toast()}
+
+/* ---------- 内容复盘 ---------- */
+let reviews=store.get('wb_reviews',[]);
+function renderReview(){const dl=$('#rv-list');if(!dl)return;dl.innerHTML='';
+ if(!reviews.length){dl.innerHTML='<div class="empty">发完第一篇笔记，来这里记下复盘 ✍️</div>';return}
+ [...reviews].reverse().forEach(r=>{const el=document.createElement('div');el.className='item';
+  el.innerHTML='<span class="grow"><b style="font-size:13.5px">'+r.title+'</b> <span class="pill">'+r.date+'</span><br><span style="font-size:12.5px;color:var(--gray)">👍 '+r.good+'</span><br><span style="font-size:12.5px;color:var(--gray)">🔧 '+r.next+'</span></span><button class="del">✕</button>';
+  el.querySelector('.del').onclick=()=>{reviews=reviews.filter(x=>x.id!==r.id);store.set('wb_reviews',reviews);renderReview()};
+  dl.appendChild(el)})}
+function addReview(){const t=$('#rv-title').value.trim();if(!t)return;
+ reviews.push({id:Date.now(),title:t,good:$('#rv-good').value.trim()||'—',next:$('#rv-next').value.trim()||'—',date:today()});
+ store.set('wb_reviews',reviews);['rv-title','rv-good','rv-next'].forEach(i=>$('#'+i).value='');
+ renderReview();toast()}
+
+/* ---------- 首页统计 ---------- */
+function renderHome(){
+ const t=today(),dset=new Set(done[t]||[]);
+ $('#s-task').textContent=dset.size+'/'+tasks.length;
+ $('#s-topic').textContent=topics.filter(x=>x.status!=='已发布').length;
+ $('#s-pub').textContent=stats.length;
+ $('#s-rate').textContent=stats.length?(stats.reduce((a,b)=>a+parseFloat(rate(b))||0,0)/stats.length).toFixed(1)+'%':'--'}
+
+/* ---------- 启动 ---------- */
+renderTasks();renderTopics();renderStats();renderReview();renderFrags();renderHome();
+/* 记住上次浏览的页面，下次打开自动回到那一页 */
+go(store.get('wb_page','home'));
+/* 合并每日自动推送的爆点内容（daily-topics.json 由定时任务生成；file:// 打开时自动跳过） */
+fetch('daily-topics.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(list=>{
+ if(!Array.isArray(list)||!list.length)return;
+ const date=(list[0]&&list[0].date)||'最新';
+ /* 首页每日速递卡片（只显示前5条，完整10条看选题页） */
+ const dc=$('#daily-card');if(dc){dc.style.display='block';
+  $('#daily-date').textContent=date+' · Top'+list.length;
+  $('#daily-list').innerHTML=list.slice(0,5).map(t=>'<div style="padding:4px 0"><span class="pill">'+(t.type||'爆点')+'</span>'+t.name+'</div>').join('')}
+ /* 选题页 Top10 完整卡片：含爆点分析 + 一键入池 */
+ const hc=$('#hot10-card');
+ if(hc){hc.style.display='block';$('#hot10-date').textContent=date;
+  $('#hot10-list').innerHTML=list.map((t,i)=>{
+   const inPool=store.get('wb_topics',[]).some(x=>x.name===t.name);
+   return '<div style="padding:8px 0;border-top:'+(i?'1px dashed var(--line)':'none')+'">'+
+    '<span class="pill">'+(t.type||'爆点')+'</span> <b>'+(i+1)+'. '+t.name+'</b>'+
+    (t.why?'<br><span style="font-size:12px;color:var(--gray)">💡 '+t.why+'</span>':'')+
+    '<br><button class="mini" onclick="hotToPool(this)" data-name="'+t.name+'" data-type="'+(t.type||'故事型')+'"'+(inPool?' disabled style="opacity:.5"':'')+'>＋选题池</button></div>'}).join('')}
+ /* 合并进选题池：默认只自动收前3条，其余手动点「＋选题池」 */
+ let cur=store.get('wb_topics',[]),added=false;
+ list.slice(0,3).forEach(t=>{if(t&&t.name&&!cur.some(x=>x.name===t.name)){cur.push({id:Date.now()+Math.floor(Math.random()*10000),name:t.name,type:t.type||'故事型',status:'待写',auto:true});added=true}});
+ if(added){store.set('wb_topics',cur);renderTopics();renderHome()}
+}).catch(()=>{});
+function hotToPool(btn){const n=btn.dataset.name,ty=btn.dataset.type;
+ let cur=store.get('wb_topics',[]);
+ if(cur.some(x=>x.name===n)){toast();return}
+ cur.push({id:Date.now(),name:n,type:ty,status:'待写'});store.set('wb_topics',cur);
+ renderTopics();renderHome();btn.disabled=true;btn.style.opacity=.5;toast()}
+</script>
+</body>
+</html>
