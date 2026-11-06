@@ -336,6 +336,12 @@ summary{cursor:pointer;font-weight:600;font-size:14px}
   <h1>朋友圈私域助手</h1>
   <p class="sub">只发合规内容，攒的是能做十年的信任 💬</p>
 
+  <div class="card" id="moments-daily-card" style="display:none;background:linear-gradient(135deg,#fff5f8,#ffeef4);border:1px solid #ffd3e2">
+    <h3>📡 朋友圈每日热点速递 <span style="font-size:12px;color:var(--gray);font-weight:400" id="moments-daily-date"></span></h3>
+    <div id="moments-daily-list" style="font-size:13.5px;line-height:1.7"></div>
+    <p style="font-size:12px;color:var(--gray);margin-top:8px">每天早上自动更新 · 全部为合规选题（服务种草/健康科普/节气提醒/互动话题）· 挑一条改改就能发</p>
+  </div>
+
   <div class="card">
     <h3>🗓 朋友圈内容日历（一周模板）</h3>
     <table>
@@ -585,6 +591,14 @@ function hotToPool(btn){const n=btn.dataset.name,ty=btn.dataset.type;
  if(cur.some(x=>x.name===n)){toast();return}
  cur.push({id:Date.now(),name:n,type:ty,status:'待写'});store.set('wb_topics',cur);
  renderTopics();renderHome();btn.disabled=true;btn.style.opacity=.5;toast()}
+/* 朋友圈每日热点（moments-daily.json 由定时任务生成；file:// 打开时自动跳过） */
+fetch('moments-daily.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(list=>{
+ if(!Array.isArray(list)||!list.length)return;
+ const mc=$('#moments-daily-card');if(!mc)return;
+ mc.style.display='block';
+ $('#moments-daily-date').textContent=((list[0]&&list[0].date)||'');
+ $('#moments-daily-list').innerHTML=list.map((t,i)=>'<div style="padding:6px 0;border-top:'+(i?'1px dashed #f3c6d8':'none')+'"><span class="pill">'+(t.type||'日常')+'</span> <b>'+t.name+'</b>'+(t.how?'<br><span style="font-size:12px;color:var(--gray)">✍️ '+t.how+'</span>':'')+'</div>').join('')
+}).catch(()=>{})
 </script>
 </body>
 </html>
