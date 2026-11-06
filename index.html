@@ -90,6 +90,7 @@ summary{cursor:pointer;font-weight:600;font-size:14px}
     <a data-page="ideas">📖 素材工坊</a>
     <a data-page="notes">📝 笔记工坊</a>
     <a data-page="shoot">📸 拍摄指导</a>
+    <a data-page="moments">💬 朋友圈私域</a>
     <a data-page="stats">📈 爆款追踪</a>
     <a data-page="review">🔄 内容复盘</a>
   </nav>
@@ -330,6 +331,59 @@ summary{cursor:pointer;font-weight:600;font-size:14px}
   </div>
 </section>
 
+<!-- 朋友圈私域 -->
+<section class="page" id="page-moments">
+  <h1>朋友圈私域助手</h1>
+  <p class="sub">只发合规内容，攒的是能做十年的信任 💬</p>
+
+  <div class="card">
+    <h3>🗓 朋友圈内容日历（一周模板）</h3>
+    <table>
+      <tr><th style="width:64px">星期</th><th>发什么</th><th style="width:150px">目的</th></tr>
+      <tr><td>周一</td><td>专业干货：换药/伤口护理小知识</td><td>立专业人设</td></tr>
+      <tr><td>周二</td><td>服务日常：出诊路上/工作照（不露脸）</td><td>刷存在感</td></tr>
+      <tr><td>周三</td><td>客户反馈：脱敏版感谢截图或转述</td><td>社会证明</td></tr>
+      <tr><td>周四</td><td>健康提醒：换季/节气相关护理提示</td><td>提供价值</td></tr>
+      <tr><td>周五</td><td>幕后人设：为毛孩子攒罐罐钱、生活碎片</td><td>拉近距离</td></tr>
+      <tr><td>周六</td><td>案例故事：一次上门服务的真实小故事</td><td>种草转化</td></tr>
+      <tr><td>周日</td><td>互动提问：「你们家老人换药最怕什么？」</td><td>激活评论</td></tr>
+    </table>
+    <p style="font-size:12px;color:var(--gray);margin-top:8px">频率：每天最多 1 条，同一天别又发干货又发广告，客户会屏蔽</p>
+  </div>
+
+  <div class="card">
+    <h3>✍️ 服务种草文案模板（改【】里内容就能发）</h3>
+    <p style="font-size:13px;font-weight:600;margin:10px 0 0">① 伤口护理案例（脱敏版） <button class="mini" onclick="cp(this)" data-v="今天去给【阿姨】换药，她家人说伤口拖了两周不敢碰，其实按时消毒换药恢复会顺利很多。看着伤口一天比一天好，比我多睡两小时还开心😊 有需要的家人朋友可以私信我了解上门护理～">复制</button></p>
+    <div class="prompt">今天去给【阿姨】换药，她家人说伤口拖了两周不敢碰，其实按时消毒换药恢复会顺利很多。看着伤口一天比一天好，比我多睡两小时还开心😊 有需要的家人朋友可以私信我了解上门护理～</div>
+    <p style="font-size:13px;font-weight:600;margin:14px 0 0">② 老人照护关怀（引出服务） <button class="mini" onclick="cp(this)" data-v="看望【奶奶】回来。老人家最怕的不是病，是麻烦儿女。上门护理就是让子女少跑腿、老人少折腾，专业的事交给专业的人。想了解的私我，看到都会回～">复制</button></p>
+    <div class="prompt">看望【奶奶】回来。老人家最怕的不是病，是麻烦儿女。上门护理就是让子女少跑腿、老人少折腾，专业的事交给专业的人。想了解的私我，看到都会回～</div>
+    <p style="font-size:13px;font-weight:600;margin:14px 0 0">③ 专业身份种草 <button class="mini" onclick="cp(this)" data-v="常有人问我上门护理和随便找人帮忙有啥区别：评估、无菌操作、护理记录一个都不能少，凭医嘱、走正规流程。信任是专业给的不是嘴上说的💪">复制</button></p>
+    <div class="prompt">常有人问我上门护理和随便找人帮忙有啥区别：评估、无菌操作、护理记录一个都不能少，凭医嘱、走正规流程。信任是专业给的不是嘴上说的💪</div>
+    <p style="font-size:13px;font-weight:600;margin:14px 0 0">④ 换季健康提醒 <button class="mini" onclick="cp(this)" data-v="换季了，家里有伤口未愈/长期卧床的老人注意：保持敷料干燥、定时翻身。拿不准的可以拍给我看看，需要上门评估的私我～">复制</button></p>
+    <div class="prompt">换季了，家里有伤口未愈/长期卧床的老人注意：保持敷料干燥、定时翻身。拿不准的可以拍给我看看，需要上门评估的私我～</div>
+  </div>
+
+  <div class="card">
+    <h3>📞 老客唤醒话术（一对一私聊用，别群发）</h3>
+    <p style="font-size:13px;font-weight:600;margin:10px 0 0">① 换季提醒 <button class="mini" onclick="cp(this)" data-v="【阿姨】您好～最近降温了，想起您上次伤口刚愈合，天气变化时皮肤容易干裂，注意保暖保湿。有任何不舒服随时找我，别硬扛😊">复制</button></p>
+    <div class="prompt">【阿姨】您好～最近降温了，想起您上次伤口刚愈合，天气变化时皮肤容易干裂，注意保暖保湿。有任何不舒服随时找我，别硬扛😊</div>
+    <p style="font-size:13px;font-weight:600;margin:14px 0 0">② 术后回访 <button class="mini" onclick="cp(this)" data-v="【叔叔】您好，距离上次换药有一周啦，伤口最近感觉怎么样？方便的话拍张照给我看看恢复情况，需要复诊换药我随时可以上门～">复制</button></p>
+    <div class="prompt">【叔叔】您好，距离上次换药有一周啦，伤口最近感觉怎么样？方便的话拍张照给我看看恢复情况，需要复诊换药我随时可以上门～</div>
+    <p style="font-size:12.5px;color:var(--gray);margin-top:8px">唤醒要点：先关心、再服务、最后才是生意。一个月最多唤醒一次，别让人反感</p>
+  </div>
+
+  <div class="card">
+    <h3>🛡 私域合规红线（发之前过一遍，保护执业资格）</h3>
+    <ul class="check">
+      <li>不宣传、代购、转卖任何处方药和注射类产品（包括减重针、美白针、NAD+ 等）——无证售药是刑事风险，这条没有商量余地</li>
+      <li>不承诺疗效、不写「根治/包好/百分百」、不用患者前后对比图</li>
+      <li>案例必须脱敏：无姓名全名、无小区门牌、无病历单据照片</li>
+      <li>价格不刷屏群发，一对一咨询时再谈，显得专业也不惹人烦</li>
+      <li>涉及打针输液类项目，话术里保留「凭医嘱、正规流程」表述</li>
+    </ul>
+  </div>
+</section>
+
 <!-- 爆款追踪 -->
 <section class="page" id="page-stats">
   <h1>爆款追踪</h1>
@@ -369,6 +423,7 @@ summary{cursor:pointer;font-weight:600;font-size:14px}
   <a data-page="ideas"><i>📖</i>素材</a>
   <a data-page="notes"><i>📝</i>笔记</a>
   <a data-page="shoot"><i>📸</i>拍摄</a>
+  <a data-page="moments"><i>💬</i>朋友圈</a>
   <a data-page="stats"><i>📈</i>数据</a>
   <a data-page="review"><i>🔄</i>复盘</a>
 </nav>
