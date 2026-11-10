@@ -680,28 +680,28 @@ function feedXhs(list){
  if(!list||!list.length)return;
  var d=todayStr();
  if(store.get('wb_feed_xhs_date','')===d)return;
- var cur=store.get('wb_topics',[]).slice(),n=0;
+ var cur=store.get('wb_topics',[]).slice(),added=[];
  list.slice(0,3).forEach(function(t,i){
   if(!t||!t.name)return;
-  if(cur.some(function(x){return x.name===t.name}))return;
-  cur.unshift({id:Date.now()+i,name:t.name,type:t.type||'故事型',why:t.why||'',status:'待写',auto:true,day:d});n++});
+  if(cur.concat(added).some(function(x){return x.name===t.name}))return;
+  added.push({id:Date.now()+i,name:t.name,type:t.type||'故事型',why:t.why||'',status:'待写',auto:true,day:d})});
  store.set('wb_feed_xhs_date',d);
- if(!n)return;
- cur=capPool(cur,36);
+ if(!added.length)return;
+ cur=capPool(added.concat(cur),36);
  store.set('wb_topics',cur);topics=cur;renderTopics();renderHome();
 }
 function feedMom(list){
  if(!list||!list.length)return;
  var d=todayStr();
  if(store.get('wb_feed_mom_date','')===d)return;
- var cur=store.get('wb_mom',[]).slice(),n=0;
+ var cur=store.get('wb_mom',[]).slice(),added=[];
  list.slice(0,3).forEach(function(t,i){
   if(!t||!t.name)return;
-  if(cur.some(function(x){return x.name===t.name}))return;
-  cur.unshift({id:Date.now()+i,name:t.name,type:t.type||'日常',how:t.how||'',date:d,used:false});n++});
+  if(cur.concat(added).some(function(x){return x.name===t.name}))return;
+  added.push({id:Date.now()+i,name:t.name,type:t.type||'日常',how:t.how||'',date:d,used:false})});
  store.set('wb_feed_mom_date',d);
- if(!n)return;
- cur=capPool(cur,30);
+ if(!added.length)return;
+ cur=capPool(added.concat(cur),30);
  store.set('wb_mom',cur);renderMomPool();
 }
 /* 合并每日爆点（daily-topics.json）；拿不到或过期就用常备弹药，两条路都会入池 */
