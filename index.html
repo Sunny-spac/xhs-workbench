@@ -564,47 +564,104 @@ function renderHome(){
 renderTasks();renderTopics();renderStats();renderReview();renderFrags();renderHome();
 /* 记住上次浏览的页面，下次打开自动回到那一页 */
 go(store.get('wb_page','home'));
-/* 数据新鲜度检查：与今天不一致时给提示，避免"停在某天却不知道" */
-function freshTag(d){
- var t=new Date(),today=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
- if(!d)return '';
- return d===today?'':' <span style="color:#c2577a;font-weight:600">· 数据停在 '+d+'，可能未自动更新</span>'
-}
-/* 合并每日自动推送的爆点内容（daily-topics.json 由定时任务生成；file:// 打开时自动跳过） */
-fetch('daily-topics.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(list=>{
- if(!Array.isArray(list)||!list.length)return;
- const date=(list[0]&&list[0].date)||'最新';
- /* 首页每日速递卡片（只显示前5条，完整10条看选题页） */
- const dc=$('#daily-card');if(dc){dc.style.display='block';
-  $('#daily-date').innerHTML=date+' · Top'+list.length+freshTag(date);
+/* 数据新鲜度检查 + 常备弹药库（自动任务没跑时也永远有货） */
+function todayStr(){var t=new Date();return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0')}
+function freshTag(d){if(!d)return'';return d===todayStr()?'':' <span style="color:#c2577a;font-weight:600">· 数据停在 '+d+'</span>'}
+var BANK_XHS=[
+ {name:'第一次上门差点被当骗子',type:'故事型',why:'身份误会自带冲突，陌生行业最容易破圈的叙事模板'},
+ {name:'客户家的猫蹲在我工具箱上监工',type:'故事型',why:'萌宠×职业反差，评论区天然热闹，完美贴合不露脸人设'},
+ {name:'晚上十点接到一个加急单',type:'故事型',why:'悬念开场，适合做「上门夜记」系列'},
+ {name:'哪些项目不适合上门做',type:'科普型',why:'反向避坑，收藏率高，也顺手把安全边界讲清楚'},
+ {name:'出诊箱开箱：一个月跑60家都装了什么',type:'科普型',why:'开箱结构完播高，纯俯拍就能拍'},
+ {name:'约上门护理前必须问清的3个问题',type:'科普型',why:'清单式干货，吃长尾搜索，涨粉利器'},
+ {name:'上门费到底贵在哪，我算给你看',type:'争议型',why:'收费是高频质疑，正面拆解能筛出高意向客户'},
+ {name:'那些让我破防的客户瞬间',type:'情感型',why:'情感共鸣强，素材可复用，评论区会讲自家故事'},
+ {name:'从三甲出来做上门，我图什么',type:'反差型',why:'职业选择自带讨论度（不提收入数字更安全）'},
+ {name:'家属最担心的三件事，我一条条回',type:'争议型',why:'承接网约护士热点，从业者视角回应质疑最吃香'},
+ {name:'老人最怕的不是病',type:'情感型',why:'戳中大量有老人要照顾的子女，转发率高'},
+ {name:'什么样的操作我不会做',type:'科普型',why:'主动划边界＝可信度，医疗合规上也最稳'},
+ {name:'老人家里那些顺手帮忙：调手机、开罐头',type:'情感型',why:'细节真实有画面，共情强又立住「人靠谱」'},
+ {name:'降温后卧床老人最该盯的几处皮肤',type:'科普型',why:'季节刚需，子女主动搜索，使用价值高'},
+ {name:'换药时家属最常问的4句话',type:'科普型',why:'问答结构好读，顺手把常见误区一次说清'},
+ {name:'上门遇到没电梯的6楼',type:'故事型',why:'生活化的小辛苦最容易共情，也显得真实'},
+ {name:'客户家的狗比我先认识我',type:'故事型',why:'宠物＋固定客户关系，温暖又好笑'},
+ {name:'我的护理记录本长什么样',type:'科普型',why:'专业感可视化，纯手部特写就能拍'},
+ {name:'一次上门到底做哪些步骤（全程计时）',type:'科普型',why:'流程透明，最能打消「靠不靠谱」的疑虑'},
+ {name:'家属说「你比我女儿还细心」',type:'情感型',why:'一句真实评价胜过十条广告'},
+ {name:'耗材是我自己带还是客户买',type:'争议型',why:'实际问题，评论区会追问，转化率高'},
+ {name:'为什么我不接「顺便帮个忙」的单',type:'争议型',why:'有立场的从业者更可信，也保护自己'},
+ {name:'术后第一次上门，我先看什么',type:'科普型',why:'术后家庭焦虑值高，专业拆解很容易被收藏'},
+ {name:'一个人住的老人的冰箱',type:'情感型',why:'细节观察视角，克制又有力量'},
+ {name:'我给每个客户建了一份护理档案',type:'科普型',why:'差异化服务点，让「专业」变得可感知'},
+ {name:'一天跑5家，路线怎么排',type:'故事型',why:'幕后视角少见，满足好奇心'},
+ {name:'上门护理和家政到底差在哪',type:'科普型',why:'高频误解，讲清一次能省掉无数解释'},
+ {name:'客户临时取消，那天我怎么过',type:'故事型',why:'真实到有点心酸，反而让人记住你'},
+ {name:'上门时我最怕看到的3种情况',type:'科普型',why:'风险科普，家属爱看，也不踩疗效红线'},
+ {name:'第一次上门前，我会先发一段话给家属',type:'科普型',why:'可直接抄的模板，实用性强，转发率高'}
+];
+var BANK_MOM=[
+ {name:'降温提醒：卧床老人皮肤护理三件事',type:'节气提醒',how:'配一张整理护理垫的俯拍照，开头写「这两天降温，家里有卧床老人的注意一下」'},
+ {name:'顺手科普「正规上门看什么」',type:'健康科普',how:'看资质、看流程、看记录，最后一句「凭医嘱、走正规平台」'},
+ {name:'今天跑的第三家，门口有只猫在等我',type:'服务日常',how:'拍鞋＋出诊箱＋猫的局部，不露脸，配一句碎碎念'},
+ {name:'问一句：你家老人换药最怕什么？',type:'客户互动',how:'纯文字发问不加图，评论区会自己聊起来'},
+ {name:'为什么我上门第一件事是洗手、铺护理垫',type:'职业人设',how:'手部操作特写（无针头），三句话讲清流程'},
+ {name:'换药后家属常问的一句：能碰水吗',type:'健康科普',how:'一条回答一个具体问题，短、有用、不吓人'},
+ {name:'今天的出诊箱又重了两斤',type:'服务日常',how:'俯拍打开的箱子，配一句自嘲'},
+ {name:'节气提醒：入冬后老人洗澡要注意什么',type:'节气提醒',how:'三条可执行建议，结尾一句「拿不准可以问我」'},
+ {name:'客户家的小板凳，我坐了十几次',type:'职业人设',how:'拍小板凳＋护理垫角落，讲一个固定客户的小故事'},
+ {name:'一周跑单复盘：哪类需求最多',type:'职业人设',how:'纯文字，写现象不写收入，评论区自然来问'},
+ {name:'家属的感谢，我一般这样回',type:'职业人设',how:'一条话术示范，让人觉得你稳、不油腻'},
+ {name:'问一句：家里老人愿意让陌生人上门吗',type:'客户互动',how:'真实痛点提问，容易收到长评论'},
+ {name:'上门前我会提醒家属准备的三样东西',type:'健康科普',how:'清单式，家属存下来就会用你'},
+ {name:'雨天的单子最难跑，但最不能不跑',type:'服务日常',how:'拍湿掉的鞋和伞，一句感慨，别卖惨'},
+ {name:'术后照护最容易忽略的一件事',type:'健康科普',how:'只讲一个点，配手部操作图，专业感强'}
+];
+function pickBank(bank,n,off){
+ var len=bank.length,d=new Date(),seed=Math.floor((d-new Date(d.getFullYear(),0,0))/86400000),start=(seed*5+off)%len,out=[];
+ for(var i=0;i<n&&i<len;i++)out.push(bank[(start+i)%len]);
+ return out}
+function renderHot(list,isBank){
+ var date=isBank?todayStr():((list[0]&&list[0].date)||'最新');
+ var dc=$('#daily-card');if(dc){dc.style.display='block';
+  $('#daily-date').innerHTML=date+(isBank?' · 常备弹药（每日轮换）':' · Top'+list.length)+freshTag(isBank?null:date);
   $('#daily-list').innerHTML=list.slice(0,5).map(t=>'<div style="padding:4px 0"><span class="pill">'+(t.type||'爆点')+'</span>'+t.name+'</div>').join('')}
- /* 选题页 Top10 完整卡片：含爆点分析 + 一键入池 */
- const hc=$('#hot10-card');
- if(hc){hc.style.display='block';$('#hot10-date').innerHTML=date+freshTag(date);
-  $('#hot10-list').innerHTML=list.map((t,i)=>{
-   const inPool=store.get('wb_topics',[]).some(x=>x.name===t.name);
+ var hc=$('#hot10-card');
+ if(hc){hc.style.display='block';$('#hot10-date').innerHTML=date+(isBank?' · 常备弹药（每日轮换，等自动更新到了会替换）':'')+freshTag(isBank?null:date);
+  var pool=store.get('wb_topics',[]);
+  $('#hot10-list').innerHTML=list.map(function(t,i){
+   var inPool=pool.some(function(x){return x.name===t.name});
    return '<div style="padding:8px 0;border-top:'+(i?'1px dashed var(--line)':'none')+'">'+
     '<span class="pill">'+(t.type||'爆点')+'</span> <b>'+(i+1)+'. '+t.name+'</b>'+
     (t.why?'<br><span style="font-size:12px;color:var(--gray)">💡 '+t.why+'</span>':'')+
     '<br><button class="mini" onclick="hotToPool(this)" data-name="'+t.name+'" data-type="'+(t.type||'故事型')+'"'+(inPool?' disabled style="opacity:.5"':'')+'>＋选题池</button></div>'}).join('')}
+}
+function renderMom(list,isBank){
+ var mc=$('#moments-daily-card');if(!mc)return;
+ mc.style.display='block';
+ var date=isBank?todayStr():((list[0]&&list[0].date)||'');
+ $('#moments-daily-date').innerHTML=date+(isBank?' · 常备弹药（每日轮换）':'')+freshTag(isBank?null:date);
+ $('#moments-daily-list').innerHTML=list.map(function(t,i){return '<div style="padding:6px 0;border-top:'+(i?'1px dashed #f3c6d8':'none')+'"><span class="pill">'+(t.type||'日常')+'</span> <b>'+t.name+'</b>'+(t.how?'<br><span style="font-size:12px;color:var(--gray)">✍️ '+t.how+'</span>':'')+'</div>'}).join('')
+}
+/* 合并每日自动推送的爆点内容（daily-topics.json 由定时任务生成）；拿不到或过期就用常备弹药 */
+fetch('daily-topics.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(list=>{
+ var ok=Array.isArray(list)&&list.length&&((list[0]&&list[0].date)===todayStr());
+ if(!ok){renderHot(pickBank(BANK_XHS,10,0),true);return}
+ renderHot(list,false);
  /* 合并进选题池：默认只自动收前3条，其余手动点「＋选题池」 */
- let cur=store.get('wb_topics',[]),added=false;
+ var cur=store.get('wb_topics',[]),added=false;
  list.slice(0,3).forEach(t=>{if(t&&t.name&&!cur.some(x=>x.name===t.name)){cur.push({id:Date.now()+Math.floor(Math.random()*10000),name:t.name,type:t.type||'故事型',status:'待写',auto:true});added=true}});
  if(added){store.set('wb_topics',cur);renderTopics();renderHome()}
-}).catch(()=>{});
+}).catch(()=>renderHot(pickBank(BANK_XHS,10,0),true));
 function hotToPool(btn){const n=btn.dataset.name,ty=btn.dataset.type;
  let cur=store.get('wb_topics',[]);
  if(cur.some(x=>x.name===n)){toast();return}
  cur.push({id:Date.now(),name:n,type:ty,status:'待写'});store.set('wb_topics',cur);
  renderTopics();renderHome();btn.disabled=true;btn.style.opacity=.5;toast()}
-/* 朋友圈每日热点（moments-daily.json 由定时任务生成；file:// 打开时自动跳过） */
+/* 朋友圈每日热点（moments-daily.json 由定时任务生成）；拿不到或过期就用常备弹药 */
 fetch('moments-daily.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(list=>{
- if(!Array.isArray(list)||!list.length)return;
- const mc=$('#moments-daily-card');if(!mc)return;
- mc.style.display='block';
- $('#moments-daily-date').innerHTML=((list[0]&&list[0].date)||'')+freshTag(list[0]&&list[0].date);
- $('#moments-daily-list').innerHTML=list.map((t,i)=>'<div style="padding:6px 0;border-top:'+(i?'1px dashed #f3c6d8':'none')+'"><span class="pill">'+(t.type||'日常')+'</span> <b>'+t.name+'</b>'+(t.how?'<br><span style="font-size:12px;color:var(--gray)">✍️ '+t.how+'</span>':'')+'</div>').join('')
-}).catch(()=>{})
+ var ok=Array.isArray(list)&&list.length&&((list[0]&&list[0].date)===todayStr());
+ renderMom(ok?list:pickBank(BANK_MOM,5,3),!ok)
+}).catch(()=>renderMom(pickBank(BANK_MOM,5,3),true))
 </script>
 </body>
 </html>
