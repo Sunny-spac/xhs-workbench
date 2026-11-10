@@ -774,11 +774,12 @@ function renderDailyNotes(list){
  if(!Array.isArray(list)||!list.length){if(card)card.style.display='none';return}
  card.style.display='block';
  var date=(list[0]&&list[0].date)||'';
- $('#daily-notes-date').innerHTML=esc(date)+freshTag(date);
+ var cnt=list.length, warn=cnt<3?'<b style="color:#c2577a"> ⚠️ 今日仅'+cnt+'篇（应为3篇，差'+(3-cnt)+'篇）</b>':'';
+ $('#daily-notes-date').innerHTML=esc(date)+freshTag(date)+'<b> · 共 '+cnt+' 篇</b>'+warn;
  host.innerHTML=list.map(function(n,i){
   var bid='dnb'+i,ts=(n.titles||[]).map(function(t,j){return '<div class=\"item\"><span class=\"grow\">'+(j===0?'⭐ ':'')+esc(t)+'</span><button class=\"mini\" onclick=\"cp(this)\" data-v=\"'+esc(t)+'\">复制</button></div>'}).join('');
   var ps=(n.pages||[]).map(function(p){return '<tr><td>'+esc(p.v)+'</td><td>'+esc(p.shot)+'</td><td>'+esc(p.text)+'</td></tr>'}).join('');
-  return '<details'+(i===0?' open':'')+' style=\"margin-top:8px\"><summary>📝 笔记'+(i+1)+'｜'+esc(n.titles&&n.titles[0]||n.topic||'')+'</summary>'+
+  return '<details open'+' style=\"margin-top:8px;background:#fff;border:1px solid #eee;border-radius:8px;padding:8px 10px\"><summary>📝 笔记'+(i+1)+'｜'+esc(n.titles&&n.titles[0]||n.topic||'')+'</summary>'+
    '<div style=\"margin-top:10px\">'+ts+
    (n.whyHot?'<p style=\"font-size:12px;color:var(--gray)\">🔥 爆点逻辑：'+esc(n.whyHot)+'</p>':'')+
    '<p style=\"font-size:13px;font-weight:600;margin:10px 0 4px\">正文 <button class=\"mini\" onclick=\"cpId(\''+bid+'\',this)\">复制全文</button></p>'+
