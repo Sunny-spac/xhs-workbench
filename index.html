@@ -121,7 +121,7 @@ summary{cursor:pointer;font-weight:600;font-size:14px}
   <div class="card" id="daily-card" style="display:none">
     <h3>📡 每日爆点速递 <span class="pill" id="daily-date"></span></h3>
     <div id="daily-list" style="font-size:13.5px"></div>
-    <p style="font-size:12px;color:var(--gray);margin-top:8px">每天早上 9 点自动更新 · 完整 Top10＋爆点分析见「选题灵感」</p>
+    <p style="font-size:12px;color:var(--gray);margin-top:8px">每天自动补充 · 前 3 条会进「选题池」 · 完整 Top10 见「选题灵感」</p>
   </div>
 </section>
 
@@ -143,7 +143,7 @@ summary{cursor:pointer;font-weight:600;font-size:14px}
   <div class="card" id="hot10-card" style="display:none">
     <h3>📡 每日爆点 Top10 <span class="pill" id="hot10-date"></span></h3>
     <div id="hot10-list" style="font-size:13.5px"></div>
-    <p style="font-size:12px;color:var(--gray);margin-top:8px">每天早上 9 点自动更新 · 每条附爆点分析 · 中意的点「＋选题池」</p>
+    <p style="font-size:12px;color:var(--gray);margin-top:8px">每天自动补充 · 每条附爆点分析 · 中意的点「＋选题池」，前 3 条每天自动入池</p>
   </div>
   <div class="card">
     <div class="row">
@@ -339,7 +339,13 @@ summary{cursor:pointer;font-weight:600;font-size:14px}
   <div class="card" id="moments-daily-card" style="display:none;background:linear-gradient(135deg,#fff5f8,#ffeef4);border:1px solid #ffd3e2">
     <h3>📡 朋友圈每日热点速递 <span style="font-size:12px;color:var(--gray);font-weight:400" id="moments-daily-date"></span></h3>
     <div id="moments-daily-list" style="font-size:13.5px;line-height:1.7"></div>
-    <p style="font-size:12px;color:var(--gray);margin-top:8px">每天早上自动更新 · 全部为合规选题（服务种草/健康科普/节气提醒/互动话题）· 挑一条改改就能发</p>
+    <p style="font-size:12px;color:var(--gray);margin-top:8px">每天自动补充 · 全部为合规选题（服务种草/健康科普/节气提醒/互动话题）· 点「＋素材库」存下来</p>
+  </div>
+
+  <div class="card" id="mom-pool-card">
+    <h3>📥 我的朋友圈素材库 <span style="font-size:12px;color:var(--gray);font-weight:400" id="mom-pool-count"></span></h3>
+    <p style="font-size:12px;color:var(--gray);margin:0 0 8px">每天自动进来 3 条，攒着随时用；点「复制」直接拿去发</p>
+    <div id="mom-pool-list"></div>
   </div>
 
   <div class="card">
@@ -635,33 +641,88 @@ function renderHot(list,isBank){
     (t.why?'<br><span style="font-size:12px;color:var(--gray)">💡 '+t.why+'</span>':'')+
     '<br><button class="mini" onclick="hotToPool(this)" data-name="'+t.name+'" data-type="'+(t.type||'故事型')+'"'+(inPool?' disabled style="opacity:.5"':'')+'>＋选题池</button></div>'}).join('')}
 }
+var lastMomList=[],lastMomIsBank=false;
 function renderMom(list,isBank){
  var mc=$('#moments-daily-card');if(!mc)return;
- mc.style.display='block';
+ mc.style.display='block';lastMomList=list;lastMomIsBank=!!isBank;
  var date=isBank?todayStr():((list[0]&&list[0].date)||'');
  $('#moments-daily-date').innerHTML=date+(isBank?' · 常备弹药（每日轮换）':'')+freshTag(isBank?null:date);
- $('#moments-daily-list').innerHTML=list.map(function(t,i){return '<div style="padding:6px 0;border-top:'+(i?'1px dashed #f3c6d8':'none')+'"><span class="pill">'+(t.type||'日常')+'</span> <b>'+t.name+'</b>'+(t.how?'<br><span style="font-size:12px;color:var(--gray)">✍️ '+t.how+'</span>':'')+'</div>'}).join('')
+ $('#moments-daily-list').innerHTML=list.map(function(t,i){
+  var inPool=store.get('wb_mom',[]).some(function(x){return x.name===t.name});
+  return '<div style="padding:6px 0;border-top:'+(i?'1px dashed #f3c6d8':'none')+'"><span class="pill">'+(t.type||'日常')+'</span> <b>'+t.name+'</b>'+
+   (t.how?'<br><span style="font-size:12px;color:var(--gray)">✍️ '+t.how+'</span>':'')+
+   '<br><button class="mini" onclick="momToPool('+i+')"'+(inPool?' disabled style="opacity:.5"':'')+'>＋素材库</button></div>'}).join('')
 }
-/* 合并每日自动推送的爆点内容（daily-topics.json 由定时任务生成）；拿不到或过期就用常备弹药 */
-fetch('daily-topics.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(list=>{
+function momToPool(i){
+ var t=lastMomList[i];if(!t)return;
+ var cur=store.get('wb_mom',[]);
+ if(cur.some(function(x){return x.name===t.name})){toast();return}
+ cur.unshift({id:Date.now(),name:t.name,type:t.type||'日常',how:t.how||'',date:todayStr(),used:false});
+ store.set('wb_mom',cur);renderMomPool();renderMom(lastMomList,lastMomIsBank);toast();
+}
+function renderMomPool(){
+ var dl=$('#mom-pool-list');if(!dl)return;
+ var cur=store.get('wb_mom',[]);
+ var cnt=$('#mom-pool-count');if(cnt)cnt.textContent=cur.length?('共 '+cur.length+' 条'):'';
+ if(!cur.length){dl.innerHTML='<div class="empty">还没有素材，每天会自动进 3 条，也可以在上面的速递里点「＋素材库」👆</div>';return}
+ dl.innerHTML=cur.slice(0,30).map(function(t){
+  return '<div class="item"><span class="pill">'+(t.type||'日常')+'</span>'+(t.date?'<span class="pill">'+t.date.slice(5)+'</span>':'')+
+   '<span class="grow"><b>'+t.name+'</b>'+(t.how?'<br><span style="font-size:12px;color:var(--gray)">✍️ '+t.how+'</span>':'')+'</span>'+
+   '<button class="mini" onclick="cpItem(this)">复制</button><button class="del" onclick="delMom('+t.id+')">✕</button></div>'}).join('')
+}
+function delMom(id){store.set('wb_mom',store.get('wb_mom',[]).filter(function(x){return x.id!==id}));renderMomPool()}
+/* ---- 每日素材自动入池：不依赖电脑端自动任务，每天打开必长新素材 ---- */
+function capPool(a,max){var au=a.filter(function(x){return x.auto});
+ if(au.length<=max)return a;
+ var drop={};au.slice(0,au.length-max).forEach(function(x){drop[x.id]=1});
+ return a.filter(function(x){return !drop[x.id]})}
+function feedXhs(list){
+ if(!list||!list.length)return;
+ var d=todayStr();
+ if(store.get('wb_feed_xhs_date','')===d)return;
+ var cur=store.get('wb_topics',[]).slice(),n=0;
+ list.slice(0,3).forEach(function(t,i){
+  if(!t||!t.name)return;
+  if(cur.some(function(x){return x.name===t.name}))return;
+  cur.unshift({id:Date.now()+i,name:t.name,type:t.type||'故事型',why:t.why||'',status:'待写',auto:true,day:d});n++});
+ store.set('wb_feed_xhs_date',d);
+ if(!n)return;
+ cur=capPool(cur,36);
+ store.set('wb_topics',cur);topics=cur;renderTopics();renderHome();
+}
+function feedMom(list){
+ if(!list||!list.length)return;
+ var d=todayStr();
+ if(store.get('wb_feed_mom_date','')===d)return;
+ var cur=store.get('wb_mom',[]).slice(),n=0;
+ list.slice(0,3).forEach(function(t,i){
+  if(!t||!t.name)return;
+  if(cur.some(function(x){return x.name===t.name}))return;
+  cur.unshift({id:Date.now()+i,name:t.name,type:t.type||'日常',how:t.how||'',date:d,used:false});n++});
+ store.set('wb_feed_mom_date',d);
+ if(!n)return;
+ cur=capPool(cur,30);
+ store.set('wb_mom',cur);renderMomPool();
+}
+/* 合并每日爆点（daily-topics.json）；拿不到或过期就用常备弹药，两条路都会入池 */
+var XHS_URL='daily-topics.json?t='+Date.now();
+fetch(XHS_URL,{cache:'no-store'}).then(r=>r.ok?r.json():null).then(list=>{
  var ok=Array.isArray(list)&&list.length&&((list[0]&&list[0].date)===todayStr());
- if(!ok){renderHot(pickBank(BANK_XHS,10,0),true);return}
- renderHot(list,false);
- /* 合并进选题池：默认只自动收前3条，其余手动点「＋选题池」 */
- var cur=store.get('wb_topics',[]),added=false;
- list.slice(0,3).forEach(t=>{if(t&&t.name&&!cur.some(x=>x.name===t.name)){cur.push({id:Date.now()+Math.floor(Math.random()*10000),name:t.name,type:t.type||'故事型',status:'待写',auto:true});added=true}});
- if(added){store.set('wb_topics',cur);renderTopics();renderHome()}
-}).catch(()=>renderHot(pickBank(BANK_XHS,10,0),true));
+ var use=ok?list:pickBank(BANK_XHS,10,0);
+ renderHot(use,!ok);feedXhs(use);
+}).catch(function(){var b=pickBank(BANK_XHS,10,0);renderHot(b,true);feedXhs(b)});
 function hotToPool(btn){const n=btn.dataset.name,ty=btn.dataset.type;
  let cur=store.get('wb_topics',[]);
  if(cur.some(x=>x.name===n)){toast();return}
  cur.push({id:Date.now(),name:n,type:ty,status:'待写'});store.set('wb_topics',cur);
  renderTopics();renderHome();btn.disabled=true;btn.style.opacity=.5;toast()}
-/* 朋友圈每日热点（moments-daily.json 由定时任务生成）；拿不到或过期就用常备弹药 */
-fetch('moments-daily.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(list=>{
+/* 朋友圈每日素材；拿不到或过期就用常备弹药，两条路都会入素材库 */
+renderMomPool();
+fetch('moments-daily.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(list=>{
  var ok=Array.isArray(list)&&list.length&&((list[0]&&list[0].date)===todayStr());
- renderMom(ok?list:pickBank(BANK_MOM,5,3),!ok)
-}).catch(()=>renderMom(pickBank(BANK_MOM,5,3),true))
+ var use=ok?list:pickBank(BANK_MOM,5,3);
+ renderMom(use,!ok);feedMom(use);
+}).catch(function(){var b=pickBank(BANK_MOM,5,3);renderMom(b,true);feedMom(b)});
 </script>
 </body>
 </html>
