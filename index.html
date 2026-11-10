@@ -158,7 +158,14 @@ summary{cursor:pointer;font-weight:600;font-size:14px}
 <!-- 笔记工坊 -->
 <section class="page" id="page-notes">
   <h1>笔记工坊</h1>
-  <p class="sub">笔记 01 合规重写版（2026-11-10）· 点标题可折叠</p>
+  <p class="sub">每日自动生成 3 篇笔记草稿 + 笔记 01 合规重写版 · 点标题可折叠</p>
+
+  <div class="card" id="daily-notes-card" style="display:none">
+    <h3>📡 今日 3 篇笔记草稿 <span id="daily-notes-date" style="font-size:12px;color:var(--gray);font-weight:400"></span></h3>
+    <p style="font-size:12.5px;color:var(--gray);margin:4px 0 8px">结合当天爆点自动生成 · 每篇已过「平台规则红线」8 项审查 · <b style="color:#c2577a">【】里是给你的真实细节占位符，发布前务必替换或删除</b></p>
+    <div id="daily-notes-host"></div>
+    <p style="font-size:12px;color:var(--gray);margin-top:8px">每天 13:00 自动更新 · 看不到今日草稿时，去线上网址刷新（sunny-spac.github.io/xhs-workbench）</p>
+  </div>
 
   <div class="card" style="border-left:4px solid #c2577a;background:#fdf3f6">
     <h3 style="color:#c2577a">⚠️ 笔记01原版已被平台警告违规，停用</h3>
@@ -712,6 +719,29 @@ fetch(XHS_URL,{cache:'no-store'}).then(r=>r.ok?r.json():null).then(list=>{
  var use=ok?list:pickBank(BANK_XHS,10,0);
  renderHot(use,!ok);feedXhs(use);
 }).catch(function(){var b=pickBank(BANK_XHS,10,0);renderHot(b,true);feedXhs(b)});
+/* 每日 3 篇笔记草稿（daily-notes.json 由 13:00 定时任务生成，自动上传线上） */
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;')}
+function renderDailyNotes(list){
+ var host=$('#daily-notes-host');if(!host)return;
+ var card=$('#daily-notes-card');
+ if(!Array.isArray(list)||!list.length){if(card)card.style.display='none';return}
+ card.style.display='block';
+ var date=(list[0]&&list[0].date)||'';
+ $('#daily-notes-date').innerHTML=esc(date)+freshTag(date);
+ host.innerHTML=list.map(function(n,i){
+  var bid='dnb'+i,ts=(n.titles||[]).map(function(t,j){return '<div class=\"item\"><span class=\"grow\">'+(j===0?'⭐ ':'')+esc(t)+'</span><button class=\"mini\" onclick=\"cp(this)\" data-v=\"'+esc(t)+'\">复制</button></div>'}).join('');
+  var ps=(n.pages||[]).map(function(p){return '<tr><td>'+esc(p.v)+'</td><td>'+esc(p.shot)+'</td><td>'+esc(p.text)+'</td></tr>'}).join('');
+  return '<details'+(i===0?' open':'')+' style=\"margin-top:8px\"><summary>📝 笔记'+(i+1)+'｜'+esc(n.titles&&n.titles[0]||n.topic||'')+'</summary>'+
+   '<div style=\"margin-top:10px\">'+ts+
+   (n.whyHot?'<p style=\"font-size:12px;color:var(--gray)\">🔥 爆点逻辑：'+esc(n.whyHot)+'</p>':'')+
+   '<p style=\"font-size:13px;font-weight:600;margin:10px 0 4px\">正文 <button class=\"mini\" onclick=\"cpId(\''+bid+'\',this)\">复制全文</button></p>'+
+   '<div class=\"bodytext\" id=\"'+bid+'\">'+esc(n.body||'')+'</div>'+
+   '<div class=\"item\" style=\"margin-top:8px\"><span class=\"grow\">封面：'+esc(n.cover||'')+'</span><button class=\"mini\" onclick=\"cp(this)\" data-v=\"'+esc(n.cover||'')+'\">复制</button></div>'+
+   '<div class=\"item\"><span class=\"grow\">标签：'+esc(n.tags||'')+'</span><button class=\"mini\" onclick=\"cp(this)\" data-v=\"'+esc(n.tags||'')+'\">复制</button></div>'+
+   (ps?'<table style=\"margin-top:8px\"><tr><th>页</th><th>画面</th><th>文字</th></tr>'+ps+'</table>':'')+
+   '</div></details>'}).join('')
+}
+fetch('daily-notes.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(renderDailyNotes).catch(function(){});
 function hotToPool(btn){const n=btn.dataset.name,ty=btn.dataset.type;
  let cur=store.get('wb_topics',[]);
  if(cur.some(x=>x.name===n)){toast();return}
